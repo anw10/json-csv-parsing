@@ -3,9 +3,9 @@ import json
 import re
 
 
-def to_csv(filename):
+def formatToCsv(filename):
     rep_row = []
-
+    # utf8 encoding since I'm on windows and emojies don't need to be processed
     with open(filename, errors='ignore', encoding='utf8') as f1:
         csv_reader = csv.reader(f1 , delimiter=':')
         for row in csv_reader:
@@ -18,10 +18,11 @@ def to_csv(filename):
                 ret_row = ret_row.replace(',', ' ')
                 rep_row.append(row[0] + ':' + row[1] + ',' + ret_row)
     
-    with open("edited"+filename, 'w', errors='ignore') as f1:
+    newFile = filename + '.csv'
+    with open(newFile, 'w', errors='ignore') as f1:
         f1.write('\n\n'.join(rep_row))
             
-# to_csv("day1.csv")
+# formatToCsv('filename')
 
 def findMentions(filename):
     dict_list = []
@@ -32,14 +33,14 @@ def findMentions(filename):
         for row in csv_reader:
             if row['message']:
                 chat = row['message']
-                if any(re.findall("toyota", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "toyota"
+                if any(re.findall("brand1", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "brand1"
                     dict_list.append(row)
-                elif any(re.findall("omega", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "omega"
+                elif any(re.findall("brand2", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "brand2"
                     dict_list.append(row)
-                elif any(re.findall("emirates", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "emirates"
+                elif any(re.findall("brand3", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "brand3"
                     dict_list.append(row)
                 else:
                     pass
@@ -49,7 +50,7 @@ def findMentions(filename):
         writer.writeheader()
         writer.writerows(dict_list)
 
-findMentions("omega.csv")
+# findMentions(*filename*)
 
 
 def jsonToCsv(filename):
@@ -59,7 +60,7 @@ def jsonToCsv(filename):
 
     with open(filename, errors='ignore') as f1:
         csv_reader = csv.reader(f1, delimiter=',')
-        count = 0
+        # data cleanup *todo: is there a faster way to format the data*
         for row in csv_reader:
             ret_row = row[1][1:-1]
             res = re.split('},{', ret_row)
@@ -73,8 +74,12 @@ def jsonToCsv(filename):
                         ret_list.append(js)
         
     for js_obj in ret_list:
-
+        # json.loads returns a dict of the string representaion of a json object
+        # if not a json string representation and just a normal dict string representation
+        # eval shoul work too but not tested
         data = json.loads(js_obj)
+
+        # pop whatever key you don't want from the dict that json.loads return
         data.pop('type', None)
         data.pop('id', None)
         data.pop('timestamp', None)
@@ -84,13 +89,13 @@ def jsonToCsv(filename):
         data.pop('amountString', None)
         data.pop('currency', None)
         data.pop('bgColor', None)
-    
+
+        # nested dicts in json response
         data["author"] = data["author"]["name"]
 
-        
-
-    with open('mentions.csv', 'a+') as csvfile:
+    with open('convertedCSV.csv', 'a+') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         writer.writerows(dict_list)
 
+# jsonToCsv(*filename*)
