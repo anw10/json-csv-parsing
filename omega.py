@@ -3,12 +3,8 @@ import json
 import re
 
 
-ret_list = []
-field_names= ['datetime', 'author', 'message']
-dict_list = []
-rep_row = []
-
 def to_csv(filename):
+    rep_row = []
 
     with open(filename, errors='ignore', encoding='utf8') as f1:
         csv_reader = csv.reader(f1 , delimiter=':')
@@ -27,7 +23,40 @@ def to_csv(filename):
             
 # to_csv("day1.csv")
 
-def jsonToCsv(filename)
+def findMentions(filename):
+    dict_list = []
+    field_names= ['datetime', 'author', 'message', 'brandMentioned']
+
+    with open(filename, errors='ignore') as f1:
+        csv_reader = csv.DictReader(f1, delimiter=',')
+        for row in csv_reader:
+            if row['message']:
+                chat = row['message']
+                if any(re.findall("toyota", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "toyota"
+                    dict_list.append(row)
+                elif any(re.findall("omega", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "omega"
+                    dict_list.append(row)
+                elif any(re.findall("emirates", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "emirates"
+                    dict_list.append(row)
+                else:
+                    pass
+    
+    with open('mentions.csv', 'a+') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        writer.writerows(dict_list)
+
+findMentions("omega.csv")
+
+
+def jsonToCsv(filename):
+    dict_list = []
+    field_names= ['datetime', 'author', 'message']
+    ret_list = []
+
     with open(filename, errors='ignore') as f1:
         csv_reader = csv.reader(f1, delimiter=',')
         count = 0
@@ -58,15 +87,10 @@ def jsonToCsv(filename)
     
         data["author"] = data["author"]["name"]
 
-        temp = data["message"]
-        if any(re.findall("toyota", temp, re.IGNORECASE)) or any(re.findall("omega", temp, re.IGNORECASE)) or any(re.findall("emirates", temp, re.IGNORECASE)):
-            dict_list.append(data)
-        else:
-            pass
+        
 
     with open('mentions.csv', 'a+') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         writer.writerows(dict_list)
 
-# jsonToCsv("day7.csv")
