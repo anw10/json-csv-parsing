@@ -1,28 +1,48 @@
 import csv
 import json
 import re
+from datetime import datetime
 
 
 def formatToCsv(filename):
     rep_row = []
     # utf8 encoding since I'm on windows and emojies don't need to be processed
+
     with open(filename, errors='ignore', encoding='utf8') as f1:
-        csv_reader = csv.reader(f1 , delimiter=':')
+        csv_reader = csv.reader(f1 , delimiter='|')
         for row in csv_reader:
-            if len(row) > 3:
-                ret_row = row[3]
-                ret_row = ret_row.replace(',', '')
-                rep_row.append(row[0] + ':' + row[1] + ':' + row[2] + ',' + ret_row)
+            author_message = re.split(":", row[1])
+            time_break = re.split(":", row[0])
+            if time_break[0] == "-0":
+                hour = 18
+                minut = 59
+                sec = 59 - int(time_break[1])
             else:
-                ret_row = row[2]
-                ret_row = ret_row.replace(',', ' ')
-                rep_row.append(row[0] + ':' + row[1] + ',' + ret_row)
+                if len(time_break) > 2:
+                    hour = 19 + int(time_break[0])
+                    minut = int(time_break[1])
+                    sec = int(time_break[2])
+                else:
+                    hour = 19
+                    minut = int(time_break[0])
+                    sec = int(time_break[1])
+                
+            date_add = datetime(2021, 3, 10, hour,minut,sec)
+            rep_row.append(date_add.strftime("%Y-%m-%d %H:%M:%S") + ',' + author_message[0] + ',' + author_message[1].replace("," , " "))
+            # rep_row.append(row[1])
+            # if row:
+                # if len(row) > 3:
+                #     ret_row = row[3]
+                #     ret_row = ret_row.replace(',', '')
+                #     rep_row.append(row[0] + ':' + row[1] + ':' + row[2] + ',' + ret_row)
+                # else:
+                #     ret_row = row[2]
+                #     ret_row = ret_row.replace(',', ' ')
+                #     rep_row.append(row[0] + ':' + row[1] + ',' + ret_row)
     
-    newFile = filename + '.csv'
-    with open(newFile, 'w', errors='ignore') as f1:
+    with open("day1_timefix.csv", 'w', errors='ignore') as f1:
         f1.write('\n\n'.join(rep_row))
             
-# formatToCsv('filename')
 
 def findMentions(filename):
     dict_list = []
@@ -33,14 +53,14 @@ def findMentions(filename):
         for row in csv_reader:
             if row['message']:
                 chat = row['message']
-                if any(re.findall("brand1", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "brand1"
+                if any(re.findall("toyota", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "toyota"
                     dict_list.append(row)
-                elif any(re.findall("brand2", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "brand2"
+                elif any(re.findall("omega", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "omega"
                     dict_list.append(row)
-                elif any(re.findall("brand3", chat, re.IGNORECASE)):
-                    row['brandMentioned'] = "brand3"
+                elif any(re.findall("emirates", chat, re.IGNORECASE)):
+                    row['brandMentioned'] = "emirates"
                     dict_list.append(row)
                 else:
                     pass
@@ -50,7 +70,6 @@ def findMentions(filename):
         writer.writeheader()
         writer.writerows(dict_list)
 
-# findMentions(*filename*)
 
 
 def jsonToCsv(filename):
@@ -93,9 +112,14 @@ def jsonToCsv(filename):
         # nested dicts in json response
         data["author"] = data["author"]["name"]
 
-    with open('convertedCSV.csv', 'a+') as csvfile:
+        dict_list.append(data)
+
+    with open('day2-7.csv', 'a+') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         writer.writerows(dict_list)
 
-# jsonToCsv(*filename*)
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        writer.writerows(dict_list)
+
